@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthTexas No-Show Risk Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-primary: #F8FAFC; --bg-secondary: #FFFFFF; --bg-card: #FFFFFF;
+    --bg-glass: rgba(255,255,255,0.7); --bg-glass-hover: rgba(255,255,255,0.9);
+    --surface: #F1F5F9; --surface-light: #E2E8F0;
+    --border: rgba(15,23,42,0.06); --border-hover: rgba(15,23,42,0.12);
+    --text-primary: #0F172A; --text-secondary: #475569; --text-muted: #94A3B8;
+    --accent: #3B82F6; --accent-light: #EFF6FF; --accent-glow: rgba(59,130,246,0.08);
+    --teal: #10B981; --teal-light: #ECFDF5; --teal-glow: rgba(16,185,129,0.08);
+    --amber: #F59E0B; --amber-light: #FFFBEB; --amber-glow: rgba(245,158,11,0.08);
+    --rose: #EF4444; --rose-light: #FEF2F2; --rose-glow: rgba(239,68,68,0.08);
+    --purple: #8B5CF6; --purple-light: #F5F3FF;
+    --gradient-blue: linear-gradient(135deg, #3B82F6, #2563EB);
+    --gradient-teal: linear-gradient(135deg, #10B981, #059669);
+    --gradient-rose: linear-gradient(135deg, #EF4444, #DC2626);
+    --gradient-amber: linear-gradient(135deg, #F59E0B, #D97706);
+    --gradient-purple: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+    --shadow-lg: 0 8px 32px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.04);
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 1px 2px rgba(15,23,42,0.02);
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+  body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 20% 0%, rgba(239,68,68,0.03) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.03) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+
+  .top-bar { position: relative; z-index: 1; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .top-bar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+  .top-bar h1 .logo { width: 32px; height: 32px; background: var(--gradient-rose); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; }
+  .top-bar h1 .brand { color: var(--text-muted); font-weight: 400; }
+  .top-bar .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 400; }
+  .top-bar .meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 24px; align-items: center; }
+  .live-badge { display: flex; align-items: center; gap: 6px; background: var(--rose-light); border: 1px solid rgba(239,68,68,0.15); border-radius: 20px; padding: 4px 12px 4px 8px; font-size: 12px; color: var(--rose); font-weight: 500; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 6px rgba(239,68,68,0.4); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .risk-summary { position: relative; z-index: 1; padding: 20px 32px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.5); }
+  .rs-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 18px; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: var(--shadow-card); }
+  .rs-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .rs-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .rs-card:nth-child(1)::before { background: var(--gradient-blue); }
+  .rs-card:nth-child(2)::before { background: var(--gradient-rose); }
+  .rs-card:nth-child(3)::before { background: var(--gradient-amber); }
+  .rs-card:nth-child(4)::before { background: var(--gradient-teal); }
+  .rs-card:nth-child(5)::before { background: var(--gradient-rose); }
+  .rs-card .rs-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500; }
+  .rs-card .rs-value { font-size: 28px; font-weight: 800; color: var(--text-primary); margin-top: 6px; letter-spacing: -1px; }
+  .rs-card .rs-value.high { color: var(--rose); }
+  .rs-card .rs-value.med { color: #B45309; }
+  .rs-card .rs-value.low { color: var(--teal); }
+  .rs-card .rs-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 400; }
+
+  .main { position: relative; z-index: 1; padding: 24px 32px; max-width: 1440px; margin: 0 auto; }
+
+  .controls-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; animation: fadeInUp 0.3s ease forwards; }
+  .control-group { display: flex; align-items: center; gap: 8px; }
+  .control-group label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
+  .control-group select { padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-primary); background: white; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394A3B8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: calc(100% - 12px) center; padding-right: 32px; }
+  .control-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .risk-filter { display: flex; gap: 6px; }
+  .risk-btn { padding: 7px 16px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; background: white; color: var(--text-secondary); transition: all 0.2s; font-family: 'Inter', sans-serif; font-weight: 500; }
+  .risk-btn:hover { border-color: var(--border-hover); background: var(--surface); }
+  .risk-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .risk-btn.active.high-btn { background: var(--rose); border-color: var(--rose); }
+  .risk-btn.active.med-btn { background: var(--amber); border-color: var(--amber); }
+  .risk-btn.active.low-btn { background: var(--teal); border-color: var(--teal); }
+
+  .content-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+
+  .appt-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; animation: fadeInUp 0.4s ease forwards; box-shadow: var(--shadow-card); display: flex; flex-direction: column; min-height: 0; }
+  .appt-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .appt-header h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.2px; }
+  .appt-count { font-size: 12px; color: var(--text-muted); font-weight: 400; }
+  .appt-list { flex: 1; overflow-y: auto; }
+  .appt-list::-webkit-scrollbar { width: 6px; }
+  .appt-list::-webkit-scrollbar-track { background: transparent; }
+  .appt-list::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 3px; }
+
+  .appt-item { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; transition: all 0.2s; cursor: pointer; }
+  .appt-item:hover { background: var(--surface); }
+  .appt-item:last-child { border-bottom: none; }
+
+  .risk-indicator { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: white; flex-shrink: 0; letter-spacing: -0.3px; }
+  .risk-high { background: var(--rose); box-shadow: 0 2px 8px rgba(239,68,68,0.25); }
+  .risk-med { background: var(--amber); box-shadow: 0 2px 8px rgba(245,158,11,0.25); }
+  .risk-low { background: var(--teal); box-shadow: 0 2px 8px rgba(16,185,129,0.25); }
+
+  .appt-info { flex: 1; }
+  .appt-patient { font-size: 14px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.2px; }
+  .appt-details { font-size: 12px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
+  .appt-provider { font-size: 12px; color: var(--accent); margin-top: 2px; font-weight: 500; }
+  .appt-factors { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .factor-tag { font-size: 10px; padding: 3px 10px; border-radius: 12px; font-weight: 500; letter-spacing: 0.2px; }
+  .factor-tag.negative { background: var(--rose-light); color: var(--rose); border: 1px solid rgba(239,68,68,0.12); }
+  .factor-tag.positive { background: var(--teal-light); color: var(--teal); border: 1px solid rgba(16,185,129,0.12); }
+
+  .appt-action { flex-shrink: 0; }
+  .action-btn { padding: 7px 14px; border: 1px solid var(--accent); border-radius: var(--radius-sm); font-size: 11px; color: var(--accent); background: white; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; font-weight: 500; }
+  .action-btn:hover { background: var(--accent); color: white; }
+  .action-btn.warn { border-color: var(--rose); color: var(--rose); }
+  .action-btn.warn:hover { background: var(--rose); color: white; }
+
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+  .side-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; position: relative; overflow: hidden; animation: fadeInUp 0.5s ease forwards; box-shadow: var(--shadow-card); }
+  .side-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-blue); }
+  .side-panel h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; letter-spacing: -0.2px; }
+
+  .factor-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .factor-row:last-child { border-bottom: none; }
+  .factor-name { font-size: 12px; color: var(--text-secondary); font-weight: 400; }
+  .factor-impact { font-size: 12px; font-weight: 700; }
+  .factor-bar { width: 80px; height: 5px; background: var(--surface); border-radius: 3px; overflow: hidden; margin-left: 10px; }
+  .factor-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+
+  .calc-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+  .calc-label { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+  .calc-value { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .calc-highlight { color: var(--teal); }
+  .slider-group { margin: 14px 0; }
+  .slider-group label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 8px; font-weight: 500; }
+  .slider-group input[type=range] { width: 100%; cursor: pointer; accent-color: var(--teal); }
+  .slider-value { text-align: right; font-size: 16px; font-weight: 800; color: var(--teal); letter-spacing: -0.5px; }
+
+  .impact-card { background: var(--teal-light); border: 1px solid rgba(16,185,129,0.12); border-radius: var(--radius-md); padding: 22px; text-align: center; margin-top: 16px; }
+  .impact-card .imp-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500; }
+  .impact-card .imp-value { font-size: 34px; font-weight: 800; color: var(--teal); margin-top: 6px; letter-spacing: -1px; }
+  .impact-card .imp-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; font-weight: 400; }
+
+  .chart-container { position: relative; height: 200px; }
+  .watermark { position: relative; z-index: 1; text-align: center; padding: 24px; font-size: 12px; color: var(--text-muted); margin-top: 24px; border-top: 1px solid var(--border); font-weight: 400; letter-spacing: 0.2px; }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 900px) {
+    .content-grid { grid-template-columns: 1fr; }
+    .risk-summary { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1><span class="logo">R</span>HealthTexas <span class="brand">No-Show Risk Predictor</span></h1>
+    <div class="subtitle">Predictive scheduling intelligence — flag high-risk appointments before they happen</div>
+  </div>
+  <div class="meta">
+    <span class="live-badge"><span class="live-dot"></span>Scanning</span>
+    <span>January 2026</span>
+  </div>
+</div>
+
+<div class="risk-summary" id="risk-summary"></div>
+
+<div class="main">
+  <div class="controls-row">
+    <div class="control-group"><label>Clinic:</label><select id="clinic-select" onchange="filterAppts()"><option value="all">All Clinics</option></select></div>
+    <div class="control-group"><label>Date:</label><select id="date-select" onchange="filterAppts()"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">This Week</option></select></div>
+    <div class="control-group"><label>Risk Level:</label><div class="risk-filter"><button class="risk-btn active" data-risk="all" onclick="setRiskFilter('all', this)">All</button><button class="risk-btn high-btn" data-risk="high" onclick="setRiskFilter('high', this)">High</button><button class="risk-btn med-btn" data-risk="medium" onclick="setRiskFilter('medium', this)">Medium</button><button class="risk-btn low-btn" data-risk="low" onclick="setRiskFilter('low', this)">Low</button></div></div>
+  </div>
+
+  <div class="content-grid">
+    <div class="appt-panel">
+      <div class="appt-header"><h3>Upcoming Appointments — Risk Assessment</h3><span class="appt-count" id="appt-count"></span></div>
+      <div class="appt-list" id="appt-list"></div>
+    </div>
+    <div class="sidebar">
+      <div class="side-panel"><h3>Risk Factor Weights</h3><div id="factor-breakdown"></div></div>
+      <div class="side-panel"><h3>Risk Distribution</h3><div class="chart-container"><canvas id="risk-dist-chart"></canvas></div></div>
+      <div class="side-panel"><h3>Overbooking Recovery Calculator</h3><div class="slider-group"><label>Overbooking Slots per Day: <span id="ob-value" class="slider-value">2</span></label><input type="range" id="ob-slider" min="0" max="5" value="2" oninput="updateCalc()"></div><div id="calc-output"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="watermark">HealthTexas Medical Group — No-Show Risk Predictor Demo &nbsp;·&nbsp; Data: January 2026 &nbsp;·&nbsp; Built by ECW Integrations</div>
+
+<script>
+const clinicList = ["San Pedro Clinic","Wurzbach Clinic","Stone Oak Clinic","Westover Hills Clinic","Blanco Clinic","Helotes Clinic","Bandera Clinic","Ingram Park Clinic","Las Palmas Clinic","Holy Cross Clinic","Highlands Clinic","Val Verde Clinic","SW Military Clinic","Perrin Beitel Clinic","Naco Pass Clinic","Hill Country Clinic","Schertz Clinic","New Braunfels Clinic"];
+const apptTypes = ["Annual Physical","Follow-Up Visit","Sick Visit","Chronic Care Mgmt","Preventive Screening","New Patient Consult","Telehealth Visit","Medication Review"];
+const firstNames = ["Maria","Jose","Juan","Carlos","Ana","Rosa","Miguel","Pedro","Carmen","Luis","Sofia","Diego","Elena","Marco","Isabella","Oscar","Lucia","David","Angela","Roberto","Gloria","Victor","Teresa","Alejandro","Patricia","Fernando","Linda","Antonio","Christina","Daniel"];
+const lastNames = ["Garcia","Martinez","Rodriguez","Lopez","Hernandez","Gonzalez","Perez","Sanchez","Ramirez","Torres","Flores","Rivera","Morales","Reyes","Cruz","Ortiz","Gutierrez","Chavez","Mendoza","Ruiz","Diaz","Vargas","Castro","Romero","Jimenez","Medina","Aguilar","Soto","Delgado","Vega"];
+const providers = ["Dr. James Garcia","Dr. William Johnson","Dr. Daniel Taylor","Dr. Steven Perez","Dr. Paul Clark","Dr. Kevin Walker","Dr. Brian King","Dr. Timothy Nguyen","Dr. Jason Adams","Dr. Ryan Hall","Dr. Jacob Mitchell","Dr. Nicholas Thomas","Dr. Eric Jackson","Dr. Ronald Perez","Dr. Daniel Ramirez","Dr. Christopher Walker","Dr. Michael Wright","Dr. Robert Taylor"];
+const times = ["7:30 AM","8:00 AM","8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","1:00 PM","1:30 PM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM"];
+const riskFactors = [
+  {name:"Monday appointment",weight:0.25,tag:"Monday"},{name:"Friday appointment",weight:0.15,tag:"Friday"},
+  {name:"After 3:00 PM",weight:0.18,tag:"Late slot"},{name:"Prior no-show history",weight:0.35,tag:"Prior no-show"},
+  {name:"2+ cancellations (90d)",weight:0.22,tag:"Cancel history"},{name:"New patient",weight:0.12,tag:"New patient"},
+  {name:"No reminder confirmed",weight:0.28,tag:"No confirm"},{name:"Transportation barrier",weight:0.20,tag:"Transport"},
+  {name:"Medicaid/Self-Pay",weight:0.15,tag:"Ins. type"},{name:"Telehealth (lower risk)",weight:-0.20,tag:"Telehealth"},
+  {name:"Chronic care (committed)",weight:-0.12,tag:"Chronic"},{name:"Reminder confirmed",weight:-0.18,tag:"Confirmed"},
+];
+
+function generateAppointments(count = 120) {
+  const appts = [];
+  for (let i = 0; i < count; i++) {
+    const clinic = clinicList[Math.floor(Math.random() * clinicList.length)];
+    const type = apptTypes[Math.floor(Math.random() * apptTypes.length)];
+    const time = times[Math.floor(Math.random() * times.length)];
+    const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const provider = providers[clinicList.indexOf(clinic) % providers.length];
+    const factors = []; let riskScore = 0.12;
+    const dayRoll = Math.random();
+    if (dayRoll < 0.22) { factors.push({...riskFactors[0],applied:true}); riskScore += riskFactors[0].weight; }
+    else if (dayRoll > 0.78) { factors.push({...riskFactors[1],applied:true}); riskScore += riskFactors[1].weight; }
+    if (time.includes("3:") || time.includes("4:")) { factors.push({...riskFactors[2],applied:true}); riskScore += riskFactors[2].weight; }
+    if (Math.random() < 0.18) { factors.push({...riskFactors[3],applied:true}); riskScore += riskFactors[3].weight; }
+    if (Math.random() < 0.15) { factors.push({...riskFactors[4],applied:true}); riskScore += riskFactors[4].weight; }
+    if (type === "New Patient Consult") { factors.push({...riskFactors[5],applied:true}); riskScore += riskFactors[5].weight; }
+    if (Math.random() < 0.25) { factors.push({...riskFactors[6],applied:true}); riskScore += riskFactors[6].weight; }
+    else if (Math.random() < 0.5) { factors.push({...riskFactors[11],applied:true}); riskScore += riskFactors[11].weight; }
+    if (Math.random() < 0.10) { factors.push({...riskFactors[7],applied:true}); riskScore += riskFactors[7].weight; }
+    if (Math.random() < 0.12) { factors.push({...riskFactors[8],applied:true}); riskScore += riskFactors[8].weight; }
+    if (type === "Telehealth Visit") { factors.push({...riskFactors[9],applied:true}); riskScore += riskFactors[9].weight; }
+    if (type === "Chronic Care Mgmt") { factors.push({...riskFactors[10],applied:true}); riskScore += riskFactors[10].weight; }
+    riskScore = Math.max(0.02, Math.min(0.95, riskScore));
+    const riskPct = Math.round(riskScore * 100);
+    const level = riskPct >= 40 ? 'high' : riskPct >= 20 ? 'medium' : 'low';
+    appts.push({ id:`APT-${String(i+1).padStart(4,'0')}`, patient:`${first} ${last}`, clinic, type, time, provider, factors, riskScore:riskPct, riskLevel:level });
+  }
+  return appts.sort((a, b) => b.riskScore - a.riskScore);
+}
+
+let allAppts = generateAppointments(120);
+let filteredAppts = [...allAppts];
+let currentRiskFilter = 'all';
+
+const cs = document.getElementById('clinic-select');
+clinicList.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; cs.appendChild(o); });
+
+function renderSummary() {
+  const high = allAppts.filter(a => a.riskLevel === 'high').length;
+  const med = allAppts.filter(a => a.riskLevel === 'medium').length;
+  const low = allAppts.filter(a => a.riskLevel === 'low').length;
+  const estNoShows = Math.round(allAppts.reduce((s,a) => s + a.riskScore/100, 0));
+  const estRevLoss = estNoShows * 175;
+  document.getElementById('risk-summary').innerHTML = `
+    <div class="rs-card"><div class="rs-label">Today's Appointments</div><div class="rs-value">${allAppts.length}</div><div class="rs-sub">Across all clinics</div></div>
+    <div class="rs-card"><div class="rs-label">High Risk</div><div class="rs-value high">${high}</div><div class="rs-sub">${Math.round(high/allAppts.length*100)}% of schedule</div></div>
+    <div class="rs-card"><div class="rs-label">Medium Risk</div><div class="rs-value med">${med}</div><div class="rs-sub">${Math.round(med/allAppts.length*100)}% of schedule</div></div>
+    <div class="rs-card"><div class="rs-label">Low Risk</div><div class="rs-value low">${low}</div><div class="rs-sub">${Math.round(low/allAppts.length*100)}% of schedule</div></div>
+    <div class="rs-card"><div class="rs-label">Predicted No-Shows</div><div class="rs-value high">${estNoShows}</div><div class="rs-sub">$${estRevLoss.toLocaleString()} est. revenue impact</div></div>
+  `;
+}
+
+function setRiskFilter(level, btn) { currentRiskFilter = level; document.querySelectorAll('.risk-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); filterAppts(); }
+
+function filterAppts() {
+  const clinic = document.getElementById('clinic-select').value;
+  filteredAppts = allAppts.filter(a => { if (clinic !== 'all' && a.clinic !== clinic) return false; if (currentRiskFilter !== 'all' && a.riskLevel !== currentRiskFilter) return false; return true; });
+  renderApptList();
+}
+
+function renderApptList() {
+  document.getElementById('appt-count').textContent = `${filteredAppts.length} appointments`;
+  document.getElementById('appt-list').innerHTML = filteredAppts.map(a => {
+    const riskClass = a.riskLevel === 'high' ? 'risk-high' : a.riskLevel === 'medium' ? 'risk-med' : 'risk-low';
+    const negFactors = a.factors.filter(f => f.weight > 0);
+    const posFactors = a.factors.filter(f => f.weight < 0);
+    return `<div class="appt-item"><div class="risk-indicator ${riskClass}">${a.riskScore}%</div><div class="appt-info"><div class="appt-patient">${a.patient}</div><div class="appt-details">${a.time} · ${a.type} · ${a.clinic}</div><div class="appt-provider">${a.provider}</div><div class="appt-factors">${negFactors.map(f => `<span class="factor-tag negative">${f.tag}</span>`).join('')}${posFactors.map(f => `<span class="factor-tag positive">${f.tag}</span>`).join('')}</div></div><div class="appt-action">${a.riskLevel === 'high' ? '<button class="action-btn warn" onclick="alert(\'Demo: Send targeted reminder to patient\')">Send Reminder</button>' : a.riskLevel === 'medium' ? '<button class="action-btn" onclick="alert(\'Demo: Add to waitlist backfill queue\')">Waitlist</button>' : ''}</div></div>`;
+  }).join('');
+}
+
+function renderFactors() {
+  const sortedFactors = [...riskFactors].sort((a,b) => Math.abs(b.weight) - Math.abs(a.weight));
+  document.getElementById('factor-breakdown').innerHTML = sortedFactors.map(f => {
+    const pct = Math.round(Math.abs(f.weight) * 100);
+    const color = f.weight > 0 ? 'var(--rose)' : 'var(--teal)';
+    const sign = f.weight > 0 ? '+' : '';
+    return `<div class="factor-row"><span class="factor-name">${f.name}</span><div style="display:flex;align-items:center;gap:8px"><span class="factor-impact" style="color:${color}">${sign}${Math.round(f.weight*100)}%</span><div class="factor-bar"><div class="factor-bar-fill" style="width:${pct*2.5}%;background:${color}"></div></div></div></div>`;
+  }).join('');
+}
+
+let riskChart;
+function renderRiskChart() {
+  const high = allAppts.filter(a => a.riskLevel === 'high').length;
+  const med = allAppts.filter(a => a.riskLevel === 'medium').length;
+  const low = allAppts.filter(a => a.riskLevel === 'low').length;
+  if (riskChart) riskChart.destroy();
+  riskChart = new Chart(document.getElementById('risk-dist-chart'), {
+    type: 'doughnut', data: { labels: ['High Risk','Medium Risk','Low Risk'], datasets: [{ data: [high,med,low], backgroundColor: ['#EF4444','#F59E0B','#10B981'], borderWidth: 0, hoverOffset: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Inter' }, padding: 14, usePointStyle: true, color: '#475569' } }, tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#94A3B8', borderColor: '#E2E8F0', borderWidth: 1, cornerRadius: 8 } }, cutout: '58%' } }
+  );
+}
+
+function updateCalc() {
+  const slots = parseInt(document.getElementById('ob-slider').value);
+  document.getElementById('ob-value').textContent = slots;
+  const avgRevPerSlot = 175, fillRate = 0.72, workdaysMonth = 22;
+  const dailyRecovery = Math.round(slots * fillRate * avgRevPerSlot);
+  const monthlyRecovery = dailyRecovery * workdaysMonth;
+  const annualRecovery = monthlyRecovery * 12;
+  const slotsFilledDaily = Math.round(slots * fillRate * 10) / 10;
+  document.getElementById('calc-output').innerHTML = `
+    <div class="calc-row"><span class="calc-label">Slots overbooked/day</span><span class="calc-value">${slots}</span></div>
+    <div class="calc-row"><span class="calc-label">Expected fill rate</span><span class="calc-value">${Math.round(fillRate*100)}%</span></div>
+    <div class="calc-row"><span class="calc-label">Patients recovered/day</span><span class="calc-value calc-highlight">${slotsFilledDaily}</span></div>
+    <div class="calc-row"><span class="calc-label">Daily revenue recovered</span><span class="calc-value calc-highlight">$${dailyRecovery.toLocaleString()}</span></div>
+    <div class="impact-card"><div class="imp-label">Monthly Recovery Potential</div><div class="imp-value">$${monthlyRecovery.toLocaleString()}</div><div class="imp-sub">$${annualRecovery.toLocaleString()} annually across all clinics</div></div>
+  `;
+}
+
+renderSummary(); renderApptList(); renderFactors(); renderRiskChart(); updateCalc();
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthTexas Medical Group — Operations Intelligence Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #F8FAFC;
+    --bg-secondary: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+    --border: rgba(15,23,42,0.06);
+    --border-hover: rgba(15,23,42,0.12);
+    --accent: #3B82F6;
+    --teal: #10B981;
+    --rose: #EF4444;
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 1px 2px rgba(15,23,42,0.02);
+    --shadow-md: 0 4px 12px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+    --shadow-lg: 0 8px 32px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.04);
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+  body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.04) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.03) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+
+  .hero { position: relative; z-index: 1; text-align: center; padding: 80px 32px 40px; }
+  .hero-logo { width: 64px; height: 64px; background: linear-gradient(135deg, #10B981, #059669); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: white; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(16,185,129,0.2); }
+  .hero h1 { font-size: 36px; font-weight: 800; letter-spacing: -1px; color: var(--text-primary); margin-bottom: 8px; }
+  .hero h1 span { color: var(--teal); }
+  .hero p { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; line-height: 1.6; font-weight: 400; }
+  .hero .sub { font-size: 13px; color: var(--text-muted); margin-top: 12px; font-weight: 400; }
+
+  .cards { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1080px; margin: 0 auto; padding: 20px 32px 60px; }
+
+  .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 0; overflow: hidden; transition: all 0.3s ease; box-shadow: var(--shadow-card); text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--border-hover); }
+  .card-accent { height: 4px; }
+  .card:nth-child(1) .card-accent { background: linear-gradient(135deg, #10B981, #059669); }
+  .card:nth-child(2) .card-accent { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+  .card:nth-child(3) .card-accent { background: linear-gradient(135deg, #EF4444, #DC2626); }
+  .card-body { padding: 32px 28px; flex: 1; display: flex; flex-direction: column; }
+  .card-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 20px; }
+  .card:nth-child(1) .card-icon { background: rgba(16,185,129,0.08); color: var(--teal); }
+  .card:nth-child(2) .card-icon { background: rgba(139,92,246,0.08); color: #8B5CF6; }
+  .card:nth-child(3) .card-icon { background: rgba(239,68,68,0.08); color: var(--rose); }
+  .card h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 10px; color: var(--text-primary); }
+  .card .desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; flex: 1; font-weight: 400; }
+  .card .card-stats { display: flex; gap: 16px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .card .stat { text-align: center; flex: 1; }
+  .card .stat-val { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+  .card .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; font-weight: 500; }
+  .card .launch { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.2px; transition: all 0.2s; }
+  .card:nth-child(1) .launch { background: rgba(16,185,129,0.06); color: var(--teal); }
+  .card:nth-child(1):hover .launch { background: rgba(16,185,129,0.12); }
+  .card:nth-child(2) .launch { background: rgba(139,92,246,0.06); color: #8B5CF6; }
+  .card:nth-child(2):hover .launch { background: rgba(139,92,246,0.12); }
+  .card:nth-child(3) .launch { background: rgba(239,68,68,0.06); color: var(--rose); }
+  .card:nth-child(3):hover .launch { background: rgba(239,68,68,0.12); }
+
+  .footer { position: relative; z-index: 1; text-align: center; padding: 32px; border-top: 1px solid var(--border); margin-top: auto; }
+  .footer p { font-size: 12px; color: var(--text-muted); font-weight: 400; }
+  .footer .prepared { font-size: 13px; color: var(--text-secondary); font-weight: 500; margin-bottom: 6px; }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .card { animation: fadeInUp 0.5s ease-out backwards; }
+  .card:nth-child(1) { animation-delay: 0.1s; }
+  .card:nth-child(2) { animation-delay: 0.2s; }
+  .card:nth-child(3) { animation-delay: 0.3s; }
+
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: 1fr; max-width: 480px; }
+    .hero { padding: 48px 20px 24px; }
+    .hero h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-logo">H</div>
+  <h1>Health<span>Texas</span> Operations Intelligence</h1>
+  <p>Interactive demo suite showcasing operational analytics tools purpose-built for HealthTexas Medical Group's 18-clinic network.</p>
+  <div class="sub">73 Providers &nbsp;·&nbsp; 18 Clinics &nbsp;·&nbsp; San Antonio Metro &nbsp;·&nbsp; eClinicalWorks EHR</div>
+</div>
+
+<div class="cards">
+  <a href="HealthTexas_Command_Center.html" class="card">
+    <div class="card-accent"></div>
+    <div class="card-body">
+      <div class="card-icon">⚡</div>
+      <h2>Executive Command Center</h2>
+      <div class="desc">Real-time operational overview across all 18 clinics. Monitor utilization, no-show rates, wait times, and revenue at risk from a single dashboard. Click any clinic to drill into provider-level detail.</div>
+      <div class="card-stats">
+        <div class="stat"><div class="stat-val">18</div><div class="stat-label">Clinics</div></div>
+        <div class="stat"><div class="stat-val">Live</div><div class="stat-label">Status</div></div>
+        <div class="stat"><div class="stat-val">21K+</div><div class="stat-label">Appts</div></div>
+      </div>
+      <div class="launch">Open Command Center →</div>
+    </div>
+  </a>
+
+  <a href="HealthTexas_Provider_Scorecard.html" class="card">
+    <div class="card-accent"></div>
+    <div class="card-body">
+      <div class="card-icon">📊</div>
+      <h2>Provider Performance Scorecard</h2>
+      <div class="desc">Individual provider analytics with performance grading, volume trends, day-of-week heatmaps, and peer comparison tables. Select any of 73 providers to view their complete performance profile.</div>
+      <div class="card-stats">
+        <div class="stat"><div class="stat-val">73</div><div class="stat-label">Providers</div></div>
+        <div class="stat"><div class="stat-val">A–D</div><div class="stat-label">Grades</div></div>
+        <div class="stat"><div class="stat-val">6</div><div class="stat-label">KPIs</div></div>
+      </div>
+      <div class="launch">Open Provider Scorecard →</div>
+    </div>
+  </a>
+
+  <a href="HealthTexas_NoShow_Predictor.html" class="card">
+    <div class="card-accent"></div>
+    <div class="card-body">
+      <div class="card-icon">🔍</div>
+      <h2>No-Show Risk Predictor</h2>
+      <div class="desc">Predictive scheduling intelligence that scores every upcoming appointment by no-show probability. Includes risk factor analysis, overbooking recovery calculator, and intervention triggers.</div>
+      <div class="card-stats">
+        <div class="stat"><div class="stat-val">120</div><div class="stat-label">Appts</div></div>
+        <div class="stat"><div class="stat-val">12</div><div class="stat-label">Risk Factors</div></div>
+        <div class="stat"><div class="stat-val">$66K</div><div class="stat-label">Recovery</div></div>
+      </div>
+      <div class="launch">Open Risk Predictor →</div>
+    </div>
+  </a>
+</div>
+
+<div class="footer">
+  <div class="prepared">Prepared for HealthTexas Medical Group by ECW Integrations</div>
+  <p>January 2026 Preview &nbsp;·&nbsp; Interactive Demo — All data is simulated for demonstration purposes</p>
+</div>
+
+</body>
+</html>

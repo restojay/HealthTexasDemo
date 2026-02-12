@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthTexas Provider Performance Scorecard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-primary: #F8FAFC; --bg-secondary: #FFFFFF; --bg-card: #FFFFFF;
+    --bg-glass: rgba(255,255,255,0.7); --bg-glass-hover: rgba(255,255,255,0.9);
+    --surface: #F1F5F9; --surface-light: #E2E8F0;
+    --border: rgba(15,23,42,0.06); --border-hover: rgba(15,23,42,0.12);
+    --text-primary: #0F172A; --text-secondary: #475569; --text-muted: #94A3B8;
+    --accent: #3B82F6; --accent-light: #EFF6FF; --accent-glow: rgba(59,130,246,0.08);
+    --teal: #10B981; --teal-light: #ECFDF5; --teal-glow: rgba(16,185,129,0.08);
+    --amber: #F59E0B; --amber-light: #FFFBEB; --amber-glow: rgba(245,158,11,0.08);
+    --rose: #EF4444; --rose-light: #FEF2F2; --rose-glow: rgba(239,68,68,0.08);
+    --purple: #8B5CF6; --purple-light: #F5F3FF;
+    --gradient-blue: linear-gradient(135deg, #3B82F6, #2563EB);
+    --gradient-teal: linear-gradient(135deg, #10B981, #059669);
+    --gradient-rose: linear-gradient(135deg, #EF4444, #DC2626);
+    --gradient-amber: linear-gradient(135deg, #F59E0B, #D97706);
+    --gradient-purple: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+    --shadow-lg: 0 8px 32px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.04);
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 1px 2px rgba(15,23,42,0.02);
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+  body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.04) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.03) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+
+  /* Top Bar */
+  .top-bar { position: relative; z-index: 1; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .top-bar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+  .top-bar h1 .logo { width: 32px; height: 32px; background: var(--gradient-purple); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; }
+  .top-bar h1 .brand { color: var(--text-muted); font-weight: 400; }
+  .top-bar .meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 24px; align-items: center; }
+
+  /* Controls */
+  .controls { position: relative; z-index: 1; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .controls label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; }
+  .controls select { padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-primary); min-width: 240px; background: white; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394A3B8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: calc(100% - 12px) center; padding-right: 32px; }
+  .controls select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+  .main { position: relative; z-index: 1; padding: 24px 32px; max-width: 1440px; margin: 0 auto; }
+
+  /* Profile Card */
+  .profile-section { display: grid; grid-template-columns: 300px 1fr; gap: 20px; margin-bottom: 24px; animation: fadeInUp 0.5s ease forwards; }
+  .profile-card { background: white; backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; text-align: center; position: relative; overflow: hidden; box-shadow: var(--shadow-card); }
+  .profile-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-purple); }
+  .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--gradient-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; margin: 0 auto 16px; box-shadow: 0 4px 16px rgba(59,130,246,0.2); letter-spacing: -0.5px; }
+  .profile-name { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+  .profile-title { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 400; }
+  .profile-clinic { font-size: 13px; color: var(--accent); margin-top: 4px; font-weight: 600; }
+  .profile-detail { font-size: 12px; color: var(--text-muted); margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); line-height: 2; font-weight: 400; }
+  .grade-badge { display: inline-block; padding: 5px 18px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-top: 16px; letter-spacing: 0.3px; }
+  .grade-a { background: var(--teal-light); color: var(--teal); border: 1px solid rgba(16,185,129,0.15); }
+  .grade-b { background: var(--accent-light); color: var(--accent); border: 1px solid rgba(59,130,246,0.15); }
+  .grade-c { background: var(--amber-light); color: #B45309; border: 1px solid rgba(245,158,11,0.15); }
+  .grade-d { background: var(--rose-light); color: var(--rose); border: 1px solid rgba(239,68,68,0.15); }
+
+  /* KPI Row */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-content: start; }
+  .kpi-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; position: relative; overflow: hidden; transition: all 0.3s ease; box-shadow: var(--shadow-card); }
+  .kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .kpi-card:nth-child(1)::before { background: var(--gradient-blue); }
+  .kpi-card:nth-child(2)::before { background: var(--gradient-rose); }
+  .kpi-card:nth-child(3)::before { background: var(--gradient-amber); }
+  .kpi-card:nth-child(4)::before { background: var(--gradient-teal); }
+  .kpi-card .kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 500; }
+  .kpi-card .kpi-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .kpi-card .kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 4px; font-weight: 400; }
+  .kpi-card .kpi-sub .up { color: var(--teal); font-weight: 600; }
+  .kpi-card .kpi-sub .down { color: var(--rose); font-weight: 600; }
+  .kpi-card .kpi-compare { font-size: 11px; color: var(--text-muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 400; }
+  .compare-bar { height: 4px; border-radius: 2px; background: var(--surface); margin-top: 6px; overflow: hidden; }
+  .compare-fill { height: 100%; border-radius: 2px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Charts Row */
+  .charts-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-top: 20px; animation: fadeInUp 0.6s ease forwards; }
+  .chart-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; position: relative; overflow: hidden; box-shadow: var(--shadow-card); }
+  .chart-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-blue); }
+  .chart-panel h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; letter-spacing: -0.2px; }
+  .chart-container { position: relative; height: 260px; }
+
+  /* Day-of-Week Heatmap */
+  .dow-section { animation: fadeInUp 0.7s ease forwards; margin-top: 20px; }
+  .dow-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 0; }
+  .dow-cell { text-align: center; padding: 16px 8px; border-radius: var(--radius-md); transition: all 0.3s ease; border: 1px solid var(--border); }
+  .dow-cell:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .dow-cell .dow-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+  .dow-cell .dow-val { font-size: 22px; font-weight: 800; margin-top: 6px; letter-spacing: -0.5px; }
+  .dow-cell .dow-sub { font-size: 10px; color: var(--text-muted); margin-top: 4px; font-weight: 400; }
+
+  /* Comparison Table */
+  .compare-section { margin-top: 20px; animation: fadeInUp 0.8s ease forwards; }
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table th { text-align: left; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 14px 16px; border-bottom: 2px solid var(--surface); font-weight: 500; }
+  .compare-table td { font-size: 13px; color: var(--text-secondary); padding: 14px 16px; border-bottom: 1px solid var(--border); font-weight: 400; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: var(--surface); }
+  .compare-table tr.highlight td { background: var(--accent-light); }
+  .compare-table .rank { font-weight: 700; color: var(--accent); width: 40px; font-size: 14px; }
+
+  .watermark { position: relative; z-index: 1; text-align: center; padding: 24px; font-size: 12px; color: var(--text-muted); margin-top: 24px; border-top: 1px solid var(--border); font-weight: 400; letter-spacing: 0.2px; }
+
+  /* Animations */
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 1000px) {
+    .profile-section { grid-template-columns: 1fr; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .controls { padding: 14px 20px; }
+    .main { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1><span class="logo">P</span>HealthTexas <span class="brand">Provider Scorecard</span></h1>
+  <div class="meta">73 Providers &nbsp;·&nbsp; 18 Clinics &nbsp;·&nbsp; January 2026</div>
+</div>
+
+<div class="controls">
+  <label>Provider:</label>
+  <select id="provider-select" onchange="renderProvider()"></select>
+  <label style="margin-left:8px">Clinic:</label>
+  <select id="clinic-filter" onchange="filterProviders()" style="min-width:180px">
+    <option value="all">All Clinics</option>
+  </select>
+</div>
+
+<div class="main">
+  <div class="profile-section">
+    <div class="profile-card" id="profile-card"></div>
+    <div class="kpi-row" id="kpi-row"></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-panel">
+      <h3>Daily Appointment Volume — January 2026</h3>
+      <div class="chart-container"><canvas id="volume-chart"></canvas></div>
+    </div>
+    <div class="chart-panel">
+      <h3>Appointment Type Mix</h3>
+      <div class="chart-container"><canvas id="type-chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="dow-section">
+    <div class="chart-panel">
+      <h3>Day-of-Week Performance Pattern</h3>
+      <div class="dow-grid" id="dow-grid"></div>
+    </div>
+  </div>
+
+  <div class="compare-section">
+    <div class="chart-panel">
+      <h3>Provider Comparison — Same Clinic</h3>
+      <div id="compare-table"></div>
+    </div>
+  </div>
+</div>
+
+<div class="watermark">HealthTexas Medical Group — Provider Scorecard Demo &nbsp;·&nbsp; Data: January 2026 &nbsp;·&nbsp; Built by ECW Integrations</div>
+
+<script>
+const providers = [
+  {id:"PRV-001",name:"Dr. James Garcia",title:"MD",spec:"Internal Medicine",clinic:"San Pedro Clinic",clinicId:"HTX-001",slots:22,appts:308,noShows:38,cancels:33,avgWait:56,faceTime:24,ptsDay:14.0,utilization:81},
+  {id:"PRV-002",name:"Dr. Robert Martinez",title:"DO",spec:"Family Medicine",clinic:"San Pedro Clinic",clinicId:"HTX-001",slots:20,appts:312,noShows:42,cancels:37,avgWait:61,faceTime:22,ptsDay:14.2,utilization:78},
+  {id:"PRV-003",name:"Dr. Michael Hernandez",title:"MD",spec:"Internal Medicine",clinic:"San Pedro Clinic",clinicId:"HTX-001",slots:24,appts:335,noShows:36,cancels:32,avgWait:54,faceTime:26,ptsDay:15.2,utilization:85},
+  {id:"PRV-004",name:"Dr. David Lopez",title:"MD, FACP",spec:"Internal Medicine",clinic:"San Pedro Clinic",clinicId:"HTX-001",slots:22,appts:298,noShows:44,cancels:39,avgWait:63,faceTime:21,ptsDay:13.5,utilization:74},
+  {id:"PRV-005",name:"Amanda Torres",title:"PA-C",spec:"Advanced Practice",clinic:"San Pedro Clinic",clinicId:"HTX-001",slots:18,appts:286,noShows:35,cancels:31,avgWait:52,faceTime:20,ptsDay:13.0,utilization:82},
+  {id:"PRV-006",name:"Jennifer Flores",title:"APRN",spec:"Advanced Practice",clinic:"San Pedro Clinic",clinicId:"HTX-001",slots:16,appts:268,noShows:39,cancels:33,avgWait:58,faceTime:19,ptsDay:12.2,utilization:76},
+  {id:"PRV-007",name:"Dr. William Johnson",title:"MD",spec:"Internal Medicine",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:24,appts:342,noShows:32,cancels:30,avgWait:48,faceTime:28,ptsDay:15.5,utilization:91},
+  {id:"PRV-008",name:"Dr. Richard Brown",title:"DO",spec:"Family Medicine",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:22,appts:328,noShows:35,cancels:28,avgWait:50,faceTime:26,ptsDay:14.9,utilization:89},
+  {id:"PRV-009",name:"Dr. Joseph Williams",title:"MD",spec:"Internal Medicine",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:22,appts:316,noShows:38,cancels:32,avgWait:53,faceTime:24,ptsDay:14.4,utilization:86},
+  {id:"PRV-010",name:"Dr. Thomas Jones",title:"MD",spec:"Family Medicine",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:20,appts:298,noShows:30,cancels:27,avgWait:46,faceTime:25,ptsDay:13.5,utilization:90},
+  {id:"PRV-011",name:"Dr. Christopher Smith",title:"MD",spec:"Internal Medicine",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:24,appts:340,noShows:34,cancels:31,avgWait:51,faceTime:27,ptsDay:15.5,utilization:88},
+  {id:"PRV-012",name:"Sarah Davis",title:"FNP-C",spec:"Advanced Practice",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:20,appts:280,noShows:33,cancels:29,avgWait:47,faceTime:22,ptsDay:12.7,utilization:85},
+  {id:"PRV-013",name:"Lisa Wilson",title:"PA-C",spec:"Advanced Practice",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:18,appts:272,noShows:36,cancels:30,avgWait:55,faceTime:20,ptsDay:12.4,utilization:82},
+  {id:"PRV-014",name:"Nancy Anderson",title:"APRN",spec:"Advanced Practice",clinic:"Wurzbach Clinic",clinicId:"HTX-002",slots:18,appts:264,noShows:37,cancels:34,avgWait:56,faceTime:21,ptsDay:12.0,utilization:80},
+  {id:"PRV-015",name:"Dr. Daniel Taylor",title:"MD",spec:"Family Medicine",clinic:"Stone Oak Clinic",clinicId:"HTX-003",slots:22,appts:320,noShows:30,cancels:28,avgWait:46,faceTime:26,ptsDay:14.5,utilization:88},
+  {id:"PRV-016",name:"Dr. Matthew Moore",title:"MD",spec:"Internal Medicine",clinic:"Stone Oak Clinic",clinicId:"HTX-003",slots:20,appts:312,noShows:34,cancels:30,avgWait:48,faceTime:24,ptsDay:14.2,utilization:85},
+  {id:"PRV-017",name:"Dr. Anthony Martin",title:"DO",spec:"Family Medicine",clinic:"Stone Oak Clinic",clinicId:"HTX-003",slots:22,appts:308,noShows:36,cancels:32,avgWait:50,faceTime:23,ptsDay:14.0,utilization:83},
+  {id:"PRV-018",name:"Karen Lee",title:"PA-C",spec:"Advanced Practice",clinic:"Stone Oak Clinic",clinicId:"HTX-003",slots:18,appts:290,noShows:33,cancels:29,avgWait:51,faceTime:20,ptsDay:13.2,utilization:81},
+  {id:"PRV-019",name:"Betty Thompson",title:"APRN",spec:"Advanced Practice",clinic:"Stone Oak Clinic",clinicId:"HTX-003",slots:16,appts:274,noShows:33,cancels:30,avgWait:53,faceTime:19,ptsDay:12.5,utilization:79},
+  {id:"PRV-020",name:"Dr. Steven Perez",title:"MD",spec:"Internal Medicine",clinic:"Westover Hills Clinic",clinicId:"HTX-004",slots:22,appts:310,noShows:46,cancels:38,avgWait:66,faceTime:22,ptsDay:14.1,utilization:72},
+  {id:"PRV-021",name:"Dr. Andrew White",title:"MD",spec:"Family Medicine",clinic:"Westover Hills Clinic",clinicId:"HTX-004",slots:20,appts:302,noShows:44,cancels:36,avgWait:63,faceTime:21,ptsDay:13.7,utilization:74},
+  {id:"PRV-022",name:"Rebecca Harris",title:"FNP-C",spec:"Advanced Practice",clinic:"Westover Hills Clinic",clinicId:"HTX-004",slots:18,appts:288,noShows:40,cancels:33,avgWait:62,faceTime:20,ptsDay:13.1,utilization:71},
+  {id:"PRV-023",name:"Sharon Sanchez",title:"PA-C",spec:"Advanced Practice",clinic:"Westover Hills Clinic",clinicId:"HTX-004",slots:16,appts:276,noShows:38,cancels:33,avgWait:65,faceTime:19,ptsDay:12.5,utilization:70},
+  {id:"PRV-024",name:"Dr. Paul Clark",title:"MD",spec:"Internal Medicine",clinic:"Blanco Clinic",clinicId:"HTX-005",slots:20,appts:306,noShows:48,cancels:37,avgWait:68,faceTime:21,ptsDay:13.9,utilization:70},
+  {id:"PRV-025",name:"Dr. Kenneth Ramirez",title:"DO",spec:"Family Medicine",clinic:"Blanco Clinic",clinicId:"HTX-005",slots:22,appts:298,noShows:42,cancels:34,avgWait:66,faceTime:22,ptsDay:13.5,utilization:72},
+  {id:"PRV-026",name:"Laura Lewis",title:"APRN",spec:"Advanced Practice",clinic:"Blanco Clinic",clinicId:"HTX-005",slots:18,appts:282,noShows:41,cancels:33,avgWait:67,faceTime:19,ptsDay:12.8,utilization:68},
+  {id:"PRV-027",name:"Cynthia Robinson",title:"PA-C",spec:"Advanced Practice",clinic:"Blanco Clinic",clinicId:"HTX-005",slots:16,appts:268,noShows:40,cancels:33,avgWait:70,faceTime:18,ptsDay:12.2,utilization:66},
+  {id:"PRV-028",name:"Dr. Kevin Walker",title:"MD",spec:"Family Medicine",clinic:"Helotes Clinic",clinicId:"HTX-006",slots:22,appts:328,noShows:34,cancels:30,avgWait:44,faceTime:25,ptsDay:14.9,utilization:87},
+  {id:"PRV-029",name:"Ashley Young",title:"PA-C",spec:"Advanced Practice",clinic:"Helotes Clinic",clinicId:"HTX-006",slots:18,appts:298,noShows:34,cancels:33,avgWait:46,faceTime:21,ptsDay:13.5,utilization:84},
+  {id:"PRV-030",name:"Emily Allen",title:"FNP-C",spec:"Advanced Practice",clinic:"Helotes Clinic",clinicId:"HTX-006",slots:18,appts:292,noShows:34,cancels:33,avgWait:48,faceTime:20,ptsDay:13.3,utilization:83},
+  {id:"PRV-031",name:"Dr. Brian King",title:"MD",spec:"Internal Medicine",clinic:"Bandera Clinic",clinicId:"HTX-007",slots:22,appts:302,noShows:50,cancels:38,avgWait:72,faceTime:21,ptsDay:13.7,utilization:68},
+  {id:"PRV-032",name:"Dr. George Wright",title:"DO",spec:"Family Medicine",clinic:"Bandera Clinic",clinicId:"HTX-007",slots:20,appts:294,noShows:45,cancels:37,avgWait:70,faceTime:22,ptsDay:13.4,utilization:70},
+  {id:"PRV-033",name:"Donna Scott",title:"APRN",spec:"Advanced Practice",clinic:"Bandera Clinic",clinicId:"HTX-007",slots:18,appts:278,noShows:42,cancels:34,avgWait:71,faceTime:19,ptsDay:12.6,utilization:67},
+  {id:"PRV-034",name:"Michelle Torres",title:"PA-C",spec:"Advanced Practice",clinic:"Bandera Clinic",clinicId:"HTX-007",slots:16,appts:266,noShows:42,cancels:34,avgWait:73,faceTime:18,ptsDay:12.1,utilization:65},
+  {id:"PRV-035",name:"Dr. Timothy Nguyen",title:"MD",spec:"Family Medicine",clinic:"Ingram Park Clinic",clinicId:"HTX-008",slots:22,appts:312,noShows:44,cancels:36,avgWait:60,faceTime:23,ptsDay:14.2,utilization:74},
+  {id:"PRV-036",name:"Carol Hill",title:"FNP-C",spec:"Advanced Practice",clinic:"Ingram Park Clinic",clinicId:"HTX-008",slots:18,appts:282,noShows:40,cancels:34,avgWait:63,faceTime:20,ptsDay:12.8,utilization:72},
+  {id:"PRV-037",name:"Stephanie Green",title:"PA-C",spec:"Advanced Practice",clinic:"Ingram Park Clinic",clinicId:"HTX-008",slots:16,appts:268,noShows:40,cancels:34,avgWait:64,faceTime:19,ptsDay:12.2,utilization:70},
+  {id:"PRV-038",name:"Dr. Jason Adams",title:"MD",spec:"Internal Medicine",clinic:"Las Palmas Clinic",clinicId:"HTX-009",slots:20,appts:298,noShows:50,cancels:38,avgWait:76,faceTime:20,ptsDay:13.5,utilization:64},
+  {id:"PRV-039",name:"Dr. Jeffrey Nelson",title:"DO",spec:"Family Medicine",clinic:"Las Palmas Clinic",clinicId:"HTX-009",slots:22,appts:290,noShows:46,cancels:36,avgWait:74,faceTime:21,ptsDay:13.2,utilization:66},
+  {id:"PRV-040",name:"Melissa Baker",title:"APRN",spec:"Advanced Practice",clinic:"Las Palmas Clinic",clinicId:"HTX-009",slots:16,appts:262,noShows:42,cancels:34,avgWait:75,faceTime:18,ptsDay:11.9,utilization:62},
+  {id:"PRV-041",name:"Dr. Ryan Hall",title:"MD",spec:"Internal Medicine",clinic:"Holy Cross Clinic",clinicId:"HTX-010",slots:20,appts:292,noShows:56,cancels:42,avgWait:84,faceTime:19,ptsDay:13.3,utilization:58},
+  {id:"PRV-042",name:"Deborah Rivera",title:"PA-C",spec:"Advanced Practice",clinic:"Holy Cross Clinic",clinicId:"HTX-010",slots:18,appts:274,noShows:48,cancels:36,avgWait:80,faceTime:18,ptsDay:12.5,utilization:60},
+  {id:"PRV-043",name:"Amy Campbell",title:"FNP-C",spec:"Advanced Practice",clinic:"Holy Cross Clinic",clinicId:"HTX-010",slots:16,appts:260,noShows:47,cancels:35,avgWait:82,faceTime:17,ptsDay:11.8,utilization:56},
+  {id:"PRV-044",name:"Dr. Jacob Mitchell",title:"MD",spec:"Family Medicine",clinic:"Highlands Clinic",clinicId:"HTX-011",slots:22,appts:306,noShows:46,cancels:35,avgWait:68,faceTime:22,ptsDay:13.9,utilization:68},
+  {id:"PRV-045",name:"Dr. Gary Carter",title:"DO",spec:"Internal Medicine",clinic:"Highlands Clinic",clinicId:"HTX-011",slots:20,appts:292,noShows:44,cancels:34,avgWait:70,faceTime:21,ptsDay:13.3,utilization:66},
+  {id:"PRV-046",name:"Sandra Roberts",title:"APRN",spec:"Advanced Practice",clinic:"Highlands Clinic",clinicId:"HTX-011",slots:16,appts:264,noShows:42,cancels:34,avgWait:69,faceTime:18,ptsDay:12.0,utilization:64},
+  {id:"PRV-047",name:"Dr. Nicholas Thomas",title:"MD",spec:"Internal Medicine",clinic:"Val Verde Clinic",clinicId:"HTX-012",slots:22,appts:298,noShows:52,cancels:38,avgWait:78,faceTime:20,ptsDay:13.5,utilization:62},
+  {id:"PRV-048",name:"Kathleen Taylor",title:"PA-C",spec:"Advanced Practice",clinic:"Val Verde Clinic",clinicId:"HTX-012",slots:18,appts:278,noShows:47,cancels:35,avgWait:76,faceTime:19,ptsDay:12.6,utilization:63},
+  {id:"PRV-049",name:"Margaret Moore",title:"FNP-C",spec:"Advanced Practice",clinic:"Val Verde Clinic",clinicId:"HTX-012",slots:16,appts:262,noShows:46,cancels:34,avgWait:77,faceTime:18,ptsDay:11.9,utilization:60},
+  {id:"PRV-050",name:"Dr. Eric Jackson",title:"MD",spec:"Family Medicine",clinic:"SW Military Clinic",clinicId:"HTX-013",slots:22,appts:310,noShows:42,cancels:34,avgWait:64,faceTime:23,ptsDay:14.1,utilization:70},
+  {id:"PRV-051",name:"Patricia Martin",title:"APRN",spec:"Advanced Practice",clinic:"SW Military Clinic",clinicId:"HTX-013",slots:18,appts:286,noShows:42,cancels:34,avgWait:65,faceTime:19,ptsDay:13.0,utilization:69},
+  {id:"PRV-052",name:"Linda Lee",title:"PA-C",spec:"Advanced Practice",clinic:"SW Military Clinic",clinicId:"HTX-013",slots:16,appts:274,noShows:41,cancels:33,avgWait:66,faceTime:18,ptsDay:12.5,utilization:67},
+  {id:"PRV-053",name:"Dr. Ronald Perez",title:"MD",spec:"Internal Medicine",clinic:"Perrin Beitel Clinic",clinicId:"HTX-014",slots:24,appts:322,noShows:50,cancels:38,avgWait:72,faceTime:22,ptsDay:14.6,utilization:74},
+  {id:"PRV-054",name:"Dr. Mark Thompson",title:"MD",spec:"Family Medicine",clinic:"Perrin Beitel Clinic",clinicId:"HTX-014",slots:22,appts:308,noShows:48,cancels:36,avgWait:70,faceTime:23,ptsDay:14.0,utilization:72},
+  {id:"PRV-055",name:"Dr. Edward White",title:"DO",spec:"Internal Medicine",clinic:"Perrin Beitel Clinic",clinicId:"HTX-014",slots:20,appts:296,noShows:44,cancels:34,avgWait:71,faceTime:21,ptsDay:13.5,utilization:73},
+  {id:"PRV-056",name:"Dr. Timothy Harris",title:"MD",spec:"Family Medicine",clinic:"Perrin Beitel Clinic",clinicId:"HTX-014",slots:22,appts:302,noShows:46,cancels:35,avgWait:69,faceTime:22,ptsDay:13.7,utilization:75},
+  {id:"PRV-057",name:"Susan Sanchez",title:"FNP-C",spec:"Advanced Practice",clinic:"Perrin Beitel Clinic",clinicId:"HTX-014",slots:18,appts:278,noShows:43,cancels:34,avgWait:72,faceTime:19,ptsDay:12.6,utilization:70},
+  {id:"PRV-058",name:"Jessica Clark",title:"PA-C",spec:"Advanced Practice",clinic:"Perrin Beitel Clinic",clinicId:"HTX-014",slots:16,appts:266,noShows:42,cancels:33,avgWait:73,faceTime:18,ptsDay:12.1,utilization:68},
+  {id:"PRV-059",name:"Dr. Daniel Ramirez",title:"MD",spec:"Family Medicine",clinic:"Naco Pass Clinic",clinicId:"HTX-015",slots:22,appts:324,noShows:36,cancels:32,avgWait:50,faceTime:25,ptsDay:14.7,utilization:82},
+  {id:"PRV-060",name:"Barbara Lewis",title:"PA-C",spec:"Advanced Practice",clinic:"Naco Pass Clinic",clinicId:"HTX-015",slots:18,appts:296,noShows:37,cancels:34,avgWait:52,faceTime:20,ptsDay:13.5,utilization:80},
+  {id:"PRV-061",name:"Elizabeth Robinson",title:"APRN",spec:"Advanced Practice",clinic:"Naco Pass Clinic",clinicId:"HTX-015",slots:16,appts:280,noShows:37,cancels:33,avgWait:51,faceTime:19,ptsDay:12.7,utilization:78},
+  {id:"PRV-062",name:"Dr. Christopher Walker",title:"MD",spec:"Internal Medicine",clinic:"Hill Country Clinic",clinicId:"HTX-016",slots:24,appts:336,noShows:28,cancels:27,avgWait:42,faceTime:28,ptsDay:15.3,utilization:92},
+  {id:"PRV-063",name:"Dr. Andrew Young",title:"DO",spec:"Family Medicine",clinic:"Hill Country Clinic",clinicId:"HTX-016",slots:22,appts:318,noShows:32,cancels:30,avgWait:44,faceTime:26,ptsDay:14.5,utilization:88},
+  {id:"PRV-064",name:"Mary Allen",title:"FNP-C",spec:"Advanced Practice",clinic:"Hill Country Clinic",clinicId:"HTX-016",slots:18,appts:288,noShows:31,cancels:30,avgWait:45,faceTime:21,ptsDay:13.1,utilization:85},
+  {id:"PRV-065",name:"Jennifer King",title:"PA-C",spec:"Advanced Practice",clinic:"Hill Country Clinic",clinicId:"HTX-016",slots:16,appts:270,noShows:31,cancels:30,avgWait:46,faceTime:20,ptsDay:12.3,utilization:83},
+  {id:"PRV-066",name:"Dr. Michael Wright",title:"MD",spec:"Family Medicine",clinic:"Schertz Clinic",clinicId:"HTX-017",slots:24,appts:342,noShows:26,cancels:26,avgWait:40,faceTime:28,ptsDay:15.5,utilization:93},
+  {id:"PRV-067",name:"Dr. James Scott",title:"DO",spec:"Internal Medicine",clinic:"Schertz Clinic",clinicId:"HTX-017",slots:22,appts:324,noShows:30,cancels:28,avgWait:42,faceTime:26,ptsDay:14.7,utilization:90},
+  {id:"PRV-068",name:"Amanda Torres",title:"PA-C",spec:"Advanced Practice",clinic:"Schertz Clinic",clinicId:"HTX-017",slots:18,appts:288,noShows:31,cancels:29,avgWait:43,faceTime:22,ptsDay:13.1,utilization:86},
+  {id:"PRV-069",name:"Sarah Davis",title:"FNP-C",spec:"Advanced Practice",clinic:"Schertz Clinic",clinicId:"HTX-017",slots:18,appts:278,noShows:31,cancels:29,avgWait:44,faceTime:21,ptsDay:12.6,utilization:84},
+  {id:"PRV-070",name:"Dr. Robert Taylor",title:"MD",spec:"Internal Medicine",clinic:"New Braunfels Clinic",clinicId:"HTX-018",slots:22,appts:326,noShows:32,cancels:28,avgWait:46,faceTime:26,ptsDay:14.8,utilization:87},
+  {id:"PRV-071",name:"Dr. William Anderson",title:"DO",spec:"Family Medicine",clinic:"New Braunfels Clinic",clinicId:"HTX-018",slots:20,appts:310,noShows:36,cancels:32,avgWait:48,faceTime:24,ptsDay:14.1,utilization:84},
+  {id:"PRV-072",name:"Lisa Thomas",title:"APRN",spec:"Advanced Practice",clinic:"New Braunfels Clinic",clinicId:"HTX-018",slots:18,appts:288,noShows:34,cancels:31,avgWait:49,faceTime:21,ptsDay:13.1,utilization:82},
+  {id:"PRV-073",name:"Nancy Jackson",title:"PA-C",spec:"Advanced Practice",clinic:"New Braunfels Clinic",clinicId:"HTX-018",slots:16,appts:272,noShows:34,cancels:30,avgWait:50,faceTime:20,ptsDay:12.4,utilization:80},
+];
+
+const orgAvg = {
+  noShowRate: (providers.reduce((s,p) => s + p.noShows, 0) / providers.reduce((s,p) => s + p.appts, 0) * 100).toFixed(1),
+  cancelRate: (providers.reduce((s,p) => s + p.cancels, 0) / providers.reduce((s,p) => s + p.appts, 0) * 100).toFixed(1),
+  avgWait: Math.round(providers.reduce((s,p) => s + p.avgWait, 0) / providers.length),
+  utilization: Math.round(providers.reduce((s,p) => s + p.utilization, 0) / providers.length),
+  faceTime: Math.round(providers.reduce((s,p) => s + p.faceTime, 0) / providers.length),
+};
+
+const clinicNames = [...new Set(providers.map(p => p.clinic))].sort();
+
+function populateDropdowns() {
+  const cf = document.getElementById('clinic-filter');
+  clinicNames.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; cf.appendChild(o); });
+  filterProviders();
+}
+
+function filterProviders() {
+  const cf = document.getElementById('clinic-filter').value;
+  const ps = document.getElementById('provider-select');
+  const current = ps.value;
+  ps.innerHTML = '';
+  const filtered = cf === 'all' ? providers : providers.filter(p => p.clinic === cf);
+  filtered.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.name} — ${p.clinic}`; ps.appendChild(o); });
+  if (filtered.find(p => p.id === current)) ps.value = current;
+  renderProvider();
+}
+
+let volumeChart, typeChart;
+
+function renderProvider() {
+  const pid = document.getElementById('provider-select').value;
+  const p = providers.find(pr => pr.id === pid);
+  if (!p) return;
+
+  const nsRate = ((p.noShows / p.appts) * 100).toFixed(1);
+  const completed = p.appts - p.noShows - p.cancels;
+  const compRate = ((completed / p.appts) * 100).toFixed(1);
+
+  let score = 0;
+  score += p.utilization >= 85 ? 4 : p.utilization >= 75 ? 3 : p.utilization >= 65 ? 2 : 1;
+  score += parseFloat(nsRate) < 10 ? 4 : parseFloat(nsRate) < 13 ? 3 : parseFloat(nsRate) < 16 ? 2 : 1;
+  score += p.avgWait < 50 ? 4 : p.avgWait < 60 ? 3 : p.avgWait < 70 ? 2 : 1;
+  score += p.faceTime >= 25 ? 4 : p.faceTime >= 22 ? 3 : p.faceTime >= 19 ? 2 : 1;
+  const grade = score >= 14 ? 'A' : score >= 11 ? 'B' : score >= 8 ? 'C' : 'D';
+  const gradeClass = grade === 'A' ? 'grade-a' : grade === 'B' ? 'grade-b' : grade === 'C' ? 'grade-c' : 'grade-d';
+  const initials = p.name.replace('Dr. ','').split(' ').map(n => n[0]).join('');
+
+  document.getElementById('profile-card').innerHTML = `
+    <div class="profile-avatar">${initials}</div>
+    <div class="profile-name">${p.name}</div>
+    <div class="profile-title">${p.title} · ${p.spec}</div>
+    <div class="profile-clinic">${p.clinic}</div>
+    <span class="grade-badge ${gradeClass}">Performance Grade: ${grade}</span>
+    <div class="profile-detail">Daily Slots: ${p.slots}<br>Patients/Day: ${p.ptsDay}<br>Avg Face Time: ${p.faceTime} min<br>Completion Rate: ${compRate}%</div>
+  `;
+
+  const nsDiff = (parseFloat(nsRate) - parseFloat(orgAvg.noShowRate)).toFixed(1);
+  const waitDiff = p.avgWait - orgAvg.avgWait;
+  const utilDiff = p.utilization - orgAvg.utilization;
+
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Monthly Appointments</div><div class="kpi-value" style="color:var(--accent)">${p.appts}</div><div class="kpi-sub">${completed} completed</div><div class="kpi-compare">Slots/Day: ${p.slots} · Patients/Day: ${p.ptsDay}</div></div>
+    <div class="kpi-card"><div class="kpi-label">No-Show Rate</div><div class="kpi-value" style="color:${parseFloat(nsRate)>14?'var(--rose)':parseFloat(nsRate)>12?'var(--amber)':'var(--teal)'}">${nsRate}%</div><div class="kpi-sub"><span class="${parseFloat(nsDiff)>0?'down':'up'}">${parseFloat(nsDiff)>0?'+':''}${nsDiff}%</span> vs org avg</div><div class="kpi-compare">Org Avg: ${orgAvg.noShowRate}%</div><div class="compare-bar"><div class="compare-fill" style="width:${Math.min(100,parseFloat(nsRate)/20*100)}%;background:${parseFloat(nsRate)>14?'var(--rose)':'var(--amber)'}"></div></div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Wait Time</div><div class="kpi-value" style="color:${p.avgWait>65?'var(--rose)':p.avgWait>55?'var(--amber)':'var(--teal)'}">${p.avgWait}m</div><div class="kpi-sub"><span class="${waitDiff>0?'down':'up'}">${waitDiff>0?'+':''}${waitDiff}m</span> vs org avg</div><div class="kpi-compare">Org Avg: ${orgAvg.avgWait}m</div><div class="compare-bar"><div class="compare-fill" style="width:${Math.min(100,p.avgWait/90*100)}%;background:${p.avgWait>65?'var(--rose)':'var(--accent)'}"></div></div></div>
+    <div class="kpi-card"><div class="kpi-label">Utilization</div><div class="kpi-value" style="color:${p.utilization>=80?'var(--teal)':p.utilization>=70?'var(--amber)':'var(--rose)'}">${p.utilization}%</div><div class="kpi-sub"><span class="${utilDiff>=0?'up':'down'}">${utilDiff>=0?'+':''}${utilDiff}%</span> vs org avg</div><div class="kpi-compare">Org Avg: ${orgAvg.utilization}%</div><div class="compare-bar"><div class="compare-fill" style="width:${p.utilization}%;background:${p.utilization>=80?'var(--teal)':'var(--amber)'}"></div></div></div>
+  `;
+
+  const days = Array.from({length:23}, (_, i) => i + 1);
+  const dailyAppts = days.map(d => Math.round(p.appts / 23 + (Math.sin(d * 0.7) * 3) + (Math.random()-0.5)*4));
+
+  if (volumeChart) volumeChart.destroy();
+  volumeChart = new Chart(document.getElementById('volume-chart'), {
+    type: 'bar', data: { labels: days.map(d => `Jan ${d}`), datasets: [{ data: dailyAppts, backgroundColor: dailyAppts.map(v => v < p.appts/23*0.8 ? 'rgba(239,68,68,0.6)' : 'rgba(59,130,246,0.7)'), borderRadius: 4, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#94A3B8', borderColor: '#E2E8F0', borderWidth: 1, cornerRadius: 8, padding: 10, titleFont: { family: 'Inter' }, bodyFont: { family: 'Inter' } } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10, family: 'Inter' }, color: '#94A3B8', maxRotation: 45 }, border: { display: false } }, y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 11, family: 'Inter' }, color: '#94A3B8' }, beginAtZero: true, border: { display: false } } } }
+  });
+
+  const typeData = [{label:'Follow-Up',pct:25},{label:'Annual Physical',pct:15},{label:'Sick Visit',pct:18},{label:'Chronic Care',pct:14},{label:'Preventive',pct:10},{label:'New Patient',pct:8},{label:'Telehealth',pct:5},{label:'Other',pct:5}];
+  if (typeChart) typeChart.destroy();
+  typeChart = new Chart(document.getElementById('type-chart'), {
+    type: 'doughnut', data: { labels: typeData.map(t => t.label), datasets: [{ data: typeData.map(t => t.pct), backgroundColor: ['#3B82F6','#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6','#94A3B8','#CBD5E1'], borderWidth: 0, hoverOffset: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 11, family: 'Inter' }, padding: 10, usePointStyle: true, color: '#475569' } }, tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#94A3B8', borderColor: '#E2E8F0', borderWidth: 1, cornerRadius: 8 } }, cutout: '62%' }
+  });
+
+  const dows = [{day:'Mon',appts:Math.round(p.appts*0.21),ns:14.2},{day:'Tue',appts:Math.round(p.appts*0.20),ns:11.8},{day:'Wed',appts:Math.round(p.appts*0.19),ns:11.0},{day:'Thu',appts:Math.round(p.appts*0.18),ns:10.5},{day:'Fri',appts:Math.round(p.appts*0.17),ns:12.8},{day:'Sat',appts:Math.round(p.appts*0.05),ns:9.2}];
+  document.getElementById('dow-grid').innerHTML = dows.map(d => {
+    const bg = d.ns > 13 ? 'var(--rose-light)' : d.ns > 11 ? 'var(--amber-light)' : 'var(--teal-light)';
+    const color = d.ns > 13 ? 'var(--rose)' : d.ns > 11 ? '#B45309' : 'var(--teal)';
+    const bc = d.ns > 13 ? 'rgba(239,68,68,0.12)' : d.ns > 11 ? 'rgba(245,158,11,0.12)' : 'rgba(16,185,129,0.12)';
+    return `<div class="dow-cell" style="background:${bg};border-color:${bc}"><div class="dow-label">${d.day}</div><div class="dow-val" style="color:${color}">${d.ns}%</div><div class="dow-sub">${d.appts} appts</div></div>`;
+  }).join('');
+
+  const clinicProvs = providers.filter(pr => pr.clinic === p.clinic).sort((a,b) => b.utilization - a.utilization);
+  document.getElementById('compare-table').innerHTML = `<table class="compare-table"><thead><tr><th class="rank">#</th><th>Provider</th><th>Appts</th><th>No-Show %</th><th>Avg Wait</th><th>Utilization</th><th>Grade</th></tr></thead><tbody>${clinicProvs.map((cp, i) => {
+    const cpNS = ((cp.noShows / cp.appts) * 100).toFixed(1);
+    let cs = 0; cs += cp.utilization >= 85 ? 4 : cp.utilization >= 75 ? 3 : cp.utilization >= 65 ? 2 : 1; cs += parseFloat(cpNS) < 10 ? 4 : parseFloat(cpNS) < 13 ? 3 : parseFloat(cpNS) < 16 ? 2 : 1; cs += cp.avgWait < 50 ? 4 : cp.avgWait < 60 ? 3 : cp.avgWait < 70 ? 2 : 1; cs += cp.faceTime >= 25 ? 4 : cp.faceTime >= 22 ? 3 : cp.faceTime >= 19 ? 2 : 1;
+    const cg = cs >= 14 ? 'A' : cs >= 11 ? 'B' : cs >= 8 ? 'C' : 'D';
+    const hl = cp.id === p.id ? ' highlight' : '';
+    const gc = cg === 'A' ? 'grade-a' : cg === 'B' ? 'grade-b' : cg === 'C' ? 'grade-c' : 'grade-d';
+    return `<tr class="${hl}"><td class="rank">${i+1}</td><td style="color:var(--text-primary);font-weight:500">${cp.name}</td><td>${cp.appts}</td><td style="color:${parseFloat(cpNS)>14?'var(--rose)':parseFloat(cpNS)>12?'#B45309':'var(--teal)'}">${cpNS}%</td><td>${cp.avgWait}m</td><td>${cp.utilization}%</td><td><span class="grade-badge ${gc}" style="font-size:11px;padding:2px 10px">${cg}</span></td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+populateDropdowns();
+</script>
+</body>
+</html>

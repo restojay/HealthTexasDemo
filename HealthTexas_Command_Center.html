@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthTexas Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #F8FAFC; --bg-secondary: #FFFFFF; --bg-card: #FFFFFF;
+    --bg-glass: rgba(255,255,255,0.7); --bg-glass-hover: rgba(255,255,255,0.9);
+    --surface: #F1F5F9; --surface-light: #E2E8F0;
+    --border: rgba(15,23,42,0.06); --border-hover: rgba(15,23,42,0.12);
+    --text-primary: #0F172A; --text-secondary: #475569; --text-muted: #94A3B8;
+    --accent: #3B82F6; --accent-light: #EFF6FF; --accent-glow: rgba(59,130,246,0.08);
+    --teal: #10B981; --teal-light: #ECFDF5; --teal-glow: rgba(16,185,129,0.08);
+    --amber: #F59E0B; --amber-light: #FFFBEB; --amber-glow: rgba(245,158,11,0.08);
+    --rose: #EF4444; --rose-light: #FEF2F2; --rose-glow: rgba(239,68,68,0.08);
+    --purple: #8B5CF6;
+    --gradient-blue: linear-gradient(135deg, #3B82F6, #2563EB);
+    --gradient-teal: linear-gradient(135deg, #10B981, #059669);
+    --gradient-rose: linear-gradient(135deg, #EF4444, #DC2626);
+    --gradient-amber: linear-gradient(135deg, #F59E0B, #D97706);
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 1px 2px rgba(15,23,42,0.02);
+    --shadow-md: 0 4px 12px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+    --shadow-lg: 0 8px 32px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.04);
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+  body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.04) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.03) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+
+  /* Top Bar */
+  .top-bar { position: relative; z-index: 1; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .top-bar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+  .top-bar h1 .logo { width: 32px; height: 32px; background: var(--gradient-teal); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; }
+  .top-bar h1 .brand { color: var(--text-muted); font-weight: 400; }
+  .top-bar .meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 24px; align-items: center; }
+  .live-badge { display: flex; align-items: center; gap: 6px; background: var(--teal-light); border: 1px solid rgba(16,185,129,0.15); border-radius: 20px; padding: 4px 12px 4px 8px; font-size: 12px; color: var(--teal); font-weight: 500; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 8px var(--teal); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--teal); } 50% { opacity: 0.5; box-shadow: 0 0 16px var(--teal); } }
+
+  /* Summary Strip */
+  .summary-strip { position: relative; z-index: 1; padding: 20px 32px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.5); }
+  .sum-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 18px; transition: all 0.3s ease; box-shadow: var(--shadow-card); position: relative; overflow: hidden; }
+  .sum-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .sum-card:nth-child(1)::before { background: var(--gradient-blue); }
+  .sum-card:nth-child(2)::before { background: var(--gradient-rose); }
+  .sum-card:nth-child(3)::before { background: var(--gradient-amber); }
+  .sum-card:nth-child(4)::before { background: var(--gradient-rose); }
+  .sum-card:nth-child(5)::before { background: var(--gradient-teal); }
+  .sum-card:nth-child(6)::before { background: var(--gradient-amber); }
+  .sum-card:hover { border-color: var(--border-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .sum-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500; margin-bottom: 8px; }
+  .sum-card .value { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: var(--text-primary); }
+  .sum-card .value.rose { color: var(--rose); }
+  .sum-card .value.amber { color: #B45309; }
+  .sum-card .value.teal { color: var(--teal); }
+  .sum-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 400; }
+
+  /* Alert Banner */
+  .alert-banner { position: relative; z-index: 1; background: linear-gradient(90deg, rgba(239,68,68,0.06) 0%, rgba(239,68,68,0.02) 100%); border-bottom: 1px solid rgba(239,68,68,0.1); color: var(--text-primary); padding: 10px 32px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+  .alert-banner .alert-icon { width: 20px; height: 20px; background: var(--rose); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: white; }
+
+  /* Main */
+  .main { position: relative; z-index: 1; padding: 24px 32px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; }
+  .section-title .pill { background: var(--accent-light); border: 1px solid rgba(59,130,246,0.15); color: var(--accent); border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
+
+  /* Clinic Grid */
+  .clinic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .clinic-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: var(--shadow-card); }
+  .clinic-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; transition: opacity 0.3s; }
+  .clinic-card.status-ok::before { background: var(--gradient-teal); }
+  .clinic-card.status-warn::before { background: var(--gradient-amber); }
+  .clinic-card.status-alert::before { background: var(--gradient-rose); }
+  .clinic-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .clinic-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .clinic-name { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; }
+  .clinic-area { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 400; }
+  .status-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.3px; }
+  .badge-ok { background: var(--teal-light); color: var(--teal); border: 1px solid rgba(16,185,129,0.15); }
+  .badge-warn { background: var(--amber-light); color: #B45309; border: 1px solid rgba(245,158,11,0.15); }
+  .badge-alert { background: var(--rose-light); color: var(--rose); border: 1px solid rgba(239,68,68,0.15); }
+  .clinic-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .clinic-metric { text-align: center; background: var(--surface); border-radius: var(--radius-sm); padding: 8px 4px; }
+  .clinic-metric .m-val { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+  .clinic-metric .m-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; margin-top: 2px; }
+  .clinic-bar .bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+  .bar-track { height: 4px; background: var(--surface-light); border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Bottom Panels */
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card); }
+  .panel-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.2px; }
+  .panel-title .badge { font-size: 11px; font-weight: 600; background: var(--rose); color: white; padding: 3px 10px; border-radius: 20px; }
+
+  /* Alert Feed */
+  .alert-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: flex-start; transition: background 0.2s; }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-indicator { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .alert-indicator.critical { background: var(--rose); box-shadow: 0 0 6px rgba(239,68,68,0.3); }
+  .alert-indicator.warning { background: var(--amber); box-shadow: 0 0 6px rgba(245,158,11,0.3); }
+  .alert-indicator.info { background: var(--accent); box-shadow: 0 0 6px rgba(59,130,246,0.3); }
+  .alert-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-weight: 400; }
+  .alert-time { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Rankings */
+  .rank-table { width: 100%; border-collapse: collapse; }
+  .rank-table th { text-align: left; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .rank-table td { font-size: 13px; color: var(--text-secondary); padding: 12px 12px; border-bottom: 1px solid var(--border); font-weight: 400; }
+  .rank-table tr:last-child td { border-bottom: none; }
+  .rank-table tr:hover td { background: var(--surface); }
+  .rank-num { font-weight: 700; color: var(--accent); font-size: 14px; }
+  .trend-up { color: var(--teal); font-weight: 600; }
+  .trend-down { color: var(--rose); font-weight: 600; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.4); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-xl); width: 720px; max-height: 85vh; overflow-y: auto; padding: 32px; position: relative; box-shadow: var(--shadow-lg); }
+  .modal-close { position: absolute; top: 16px; right: 20px; font-size: 20px; cursor: pointer; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .modal-close:hover { background: var(--surface-light); color: var(--text-primary); }
+  .modal h2 { font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+  .modal .modal-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-bottom: 20px; }
+  .modal-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .modal-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; text-align: center; }
+  .modal-kpi .kv { font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+  .modal-kpi .kl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; font-weight: 500; }
+  .modal-providers { margin-top: 20px; }
+  .modal-providers h3 { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+  .prov-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .prov-row:last-child { border-bottom: none; }
+  .prov-name { font-weight: 600; color: var(--text-primary); }
+  .prov-stat { color: var(--text-muted); font-weight: 400; }
+
+  .watermark { position: relative; z-index: 1; text-align: center; padding: 28px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 24px; font-weight: 400; }
+
+  /* Animations */
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .clinic-card { animation: fadeInUp 0.4s ease-out backwards; }
+  .clinic-card:nth-child(1) { animation-delay: 0.02s; } .clinic-card:nth-child(2) { animation-delay: 0.04s; }
+  .clinic-card:nth-child(3) { animation-delay: 0.06s; } .clinic-card:nth-child(4) { animation-delay: 0.08s; }
+  .clinic-card:nth-child(5) { animation-delay: 0.10s; } .clinic-card:nth-child(6) { animation-delay: 0.12s; }
+  .clinic-card:nth-child(7) { animation-delay: 0.14s; } .clinic-card:nth-child(8) { animation-delay: 0.16s; }
+  .clinic-card:nth-child(9) { animation-delay: 0.18s; } .clinic-card:nth-child(10) { animation-delay: 0.20s; }
+  .clinic-card:nth-child(11) { animation-delay: 0.22s; } .clinic-card:nth-child(12) { animation-delay: 0.24s; }
+  .clinic-card:nth-child(13) { animation-delay: 0.26s; } .clinic-card:nth-child(14) { animation-delay: 0.28s; }
+  .clinic-card:nth-child(15) { animation-delay: 0.30s; } .clinic-card:nth-child(16) { animation-delay: 0.32s; }
+  .clinic-card:nth-child(17) { animation-delay: 0.34s; } .clinic-card:nth-child(18) { animation-delay: 0.36s; }
+  .sum-card { animation: fadeInUp 0.4s ease-out backwards; }
+  .sum-card:nth-child(1) { animation-delay: 0.02s; } .sum-card:nth-child(2) { animation-delay: 0.06s; }
+  .sum-card:nth-child(3) { animation-delay: 0.10s; } .sum-card:nth-child(4) { animation-delay: 0.14s; }
+  .sum-card:nth-child(5) { animation-delay: 0.18s; } .sum-card:nth-child(6) { animation-delay: 0.22s; }
+  .panel { animation: fadeInUp 0.5s ease-out backwards; animation-delay: 0.3s; }
+
+  @media (max-width: 1100px) { .summary-strip { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 900px) {
+    .bottom-row { grid-template-columns: 1fr; }
+    .summary-strip { grid-template-columns: repeat(2, 1fr); }
+    .modal { width: 95%; padding: 20px; }
+    .top-bar, .main, .summary-strip { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>
+    <div class="logo">H</div>
+    HealthTexas <span class="brand">Command Center</span>
+  </h1>
+  <div class="meta">
+    <div class="live-badge"><span class="live-dot"></span> Live</div>
+    <span id="current-time"></span>
+  </div>
+</div>
+
+<div class="summary-strip" id="summary-strip"></div>
+<div id="alert-banner"></div>
+
+<div class="main">
+  <div class="section-header">
+    <div class="section-title">Clinic Overview <span class="pill">18 Clinics</span></div>
+  </div>
+  <div class="clinic-grid" id="clinic-grid"></div>
+
+  <div class="bottom-row">
+    <div class="panel">
+      <div class="panel-title">Operations Alerts <span class="badge" id="alert-count">0</span></div>
+      <div id="alert-feed"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Clinic Rankings — No-Show Rate</div>
+      <div id="rankings"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div class="watermark">HealthTexas Medical Group — Command Center Demo &nbsp;&middot;&nbsp; January 2026 Preview &nbsp;&middot;&nbsp; ECW Integrations</div>
+
+<script>
+const clinics = [
+  {id:"HTX-001",name:"San Pedro",full:"San Pedro Clinic",address:"530 San Pedro Ave",zip:"78212",area:"Downtown",size:"Large",provCount:6,eff:0.92,appts:1842,noShows:234,cancels:205,avgWait:58,capacity:84,utilization:78,revAtRisk:72400,providers:["Dr. James Garcia","Dr. Robert Martinez","Dr. Michael Hernandez","Dr. David Lopez","Amanda Torres, PA-C","Jennifer Flores, APRN"]},
+  {id:"HTX-002",name:"Wurzbach",full:"Wurzbach Clinic",address:"8542 Wurzbach Rd",zip:"78240",area:"Medical Center",size:"Large",provCount:8,eff:0.95,appts:2456,noShows:275,cancels:241,avgWait:52,capacity:92,utilization:88,revAtRisk:89200,providers:["Dr. William Johnson","Dr. Richard Brown","Dr. Joseph Williams","Dr. Thomas Jones","Dr. Christopher Smith","Sarah Davis, FNP-C","Lisa Wilson, PA-C","Nancy Anderson, APRN"]},
+  {id:"HTX-003",name:"Stone Oak",full:"Stone Oak Clinic",address:"20821 US Hwy 281 N",zip:"78258",area:"Stone Oak",size:"Medium",provCount:5,eff:0.90,appts:1520,noShows:166,cancels:149,avgWait:49,capacity:88,utilization:82,revAtRisk:55100,providers:["Dr. Daniel Taylor","Dr. Matthew Moore","Dr. Anthony Martin","Karen Lee, PA-C","Betty Thompson, APRN"]},
+  {id:"HTX-004",name:"Westover Hills",full:"Westover Hills Clinic",address:"10307 State Hwy 151",zip:"78251",area:"Westover Hills",size:"Medium",provCount:4,eff:0.88,appts:1198,noShows:168,cancels:140,avgWait:64,capacity:80,utilization:72,revAtRisk:61800,providers:["Dr. Steven Perez","Dr. Andrew White","Rebecca Harris, FNP-C","Sharon Sanchez, PA-C"]},
+  {id:"HTX-005",name:"Blanco",full:"Blanco Clinic",address:"615 NW Loop 410",zip:"78216",area:"North Central",size:"Medium",provCount:4,eff:0.87,appts:1180,noShows:171,cancels:137,avgWait:67,capacity:78,utilization:70,revAtRisk:59500,providers:["Dr. Paul Clark","Dr. Kenneth Ramirez","Laura Lewis, APRN","Cynthia Robinson, PA-C"]},
+  {id:"HTX-006",name:"Helotes",full:"Helotes Clinic",address:"11820 Bandera Rd",zip:"78023",area:"Helotes",size:"Small",provCount:3,eff:0.91,appts:924,noShows:102,cancels:96,avgWait:46,capacity:90,utilization:85,revAtRisk:38600,providers:["Dr. Kevin Walker","Ashley Young, PA-C","Emily Allen, FNP-C"]},
+  {id:"HTX-007",name:"Bandera",full:"Bandera Clinic",address:"6428 Bandera Rd",zip:"78238",area:"West SA",size:"Medium",provCount:4,eff:0.85,appts:1156,noShows:179,cancels:143,avgWait:71,capacity:76,utilization:68,revAtRisk:63200,providers:["Dr. Brian King","Dr. George Wright","Donna Scott, APRN","Michelle Torres, PA-C"]},
+  {id:"HTX-008",name:"Ingram Park",full:"Ingram Park Clinic",address:"7431 NW Loop 410",zip:"78245",area:"Ingram",size:"Small",provCount:3,eff:0.86,appts:886,noShows:124,cancels:104,avgWait:62,capacity:82,utilization:73,revAtRisk:44800,providers:["Dr. Timothy Nguyen","Carol Hill, FNP-C","Stephanie Green, PA-C"]},
+  {id:"HTX-009",name:"Las Palmas",full:"Las Palmas Clinic",address:"911 Castroville Rd",zip:"78237",area:"West SA",size:"Small",provCount:3,eff:0.82,appts:862,noShows:138,cancels:108,avgWait:75,capacity:72,utilization:65,revAtRisk:49100,providers:["Dr. Jason Adams","Dr. Jeffrey Nelson","Melissa Baker, APRN"]},
+  {id:"HTX-010",name:"Holy Cross",full:"Holy Cross Clinic",address:"590 N General McMullen",zip:"78228",area:"Westside",size:"Small",provCount:3,eff:0.80,appts:838,noShows:151,cancels:113,avgWait:82,capacity:68,utilization:58,revAtRisk:52600,providers:["Dr. Ryan Hall","Deborah Rivera, PA-C","Amy Campbell, FNP-C"]},
+  {id:"HTX-011",name:"Highlands",full:"Highlands Clinic",address:"1910 S New Braunfels",zip:"78210",area:"Southside",size:"Small",provCount:3,eff:0.83,appts:878,noShows:132,cancels:103,avgWait:69,capacity:74,utilization:67,revAtRisk:46200,providers:["Dr. Jacob Mitchell","Dr. Gary Carter","Sandra Roberts, APRN"]},
+  {id:"HTX-012",name:"Val Verde",full:"Val Verde Clinic",address:"810 SE Military Dr",zip:"78214",area:"Southeast",size:"Small",provCount:3,eff:0.81,appts:852,noShows:145,cancels:107,avgWait:77,capacity:70,utilization:62,revAtRisk:50300,providers:["Dr. Nicholas Thomas","Kathleen Taylor, PA-C","Margaret Moore, FNP-C"]},
+  {id:"HTX-013",name:"SW Military",full:"SW Military Clinic",address:"1802 SW Military Dr",zip:"78221",area:"Southwest",size:"Small",provCount:3,eff:0.84,appts:894,noShows:125,cancels:101,avgWait:65,capacity:76,utilization:69,revAtRisk:44100,providers:["Dr. Eric Jackson","Patricia Martin, APRN","Linda Lee, PA-C"]},
+  {id:"HTX-014",name:"Perrin Beitel",full:"Perrin Beitel Clinic",address:"8906 Perrin Beitel Rd",zip:"78217",area:"Northeast",size:"Medium",provCount:6,eff:0.89,appts:1786,noShows:273,cancels:210,avgWait:71,capacity:78,utilization:74,revAtRisk:82400,providers:["Dr. Ronald Perez","Dr. Mark Thompson","Dr. Edward White","Dr. Timothy Harris","Susan Sanchez, FNP-C","Jessica Clark, PA-C"]},
+  {id:"HTX-015",name:"Naco Pass",full:"Naco Pass Clinic",address:"2003 Nacogdoches Rd",zip:"78209",area:"Terrell Hills",size:"Small",provCount:3,eff:0.88,appts:918,noShows:110,cancels:99,avgWait:51,capacity:86,utilization:80,revAtRisk:40700,providers:["Dr. Daniel Ramirez","Barbara Lewis, PA-C","Elizabeth Robinson, APRN"]},
+  {id:"HTX-016",name:"Hill Country",full:"Hill Country Clinic",address:"105 Falls Ct",zip:"78006",area:"Boerne",size:"Medium",provCount:4,eff:0.93,appts:1224,noShows:122,cancels:117,avgWait:44,capacity:91,utilization:86,revAtRisk:46500,providers:["Dr. Christopher Walker","Dr. Andrew Young","Mary Allen, FNP-C","Jennifer King, PA-C"]},
+  {id:"HTX-017",name:"Schertz",full:"Schertz Clinic",address:"650 FM 3009",zip:"78154",area:"Schertz",size:"Medium",provCount:4,eff:0.94,appts:1238,noShows:118,cancels:112,avgWait:42,capacity:93,utilization:87,revAtRisk:44900,providers:["Dr. Michael Wright","Dr. James Scott","Amanda Torres, PA-C","Sarah Davis, FNP-C"]},
+  {id:"HTX-018",name:"New Braunfels",full:"New Braunfels Clinic",address:"900 Loop 337",zip:"78130",area:"New Braunfels",size:"Medium",provCount:4,eff:0.92,appts:1212,noShows:136,cancels:121,avgWait:48,capacity:89,utilization:83,revAtRisk:48500,providers:["Dr. Robert Taylor","Dr. William Anderson","Lisa Thomas, APRN","Nancy Jackson, PA-C"]}
+];
+
+const totals = {
+  appts: clinics.reduce((s,c) => s + c.appts, 0),
+  noShows: clinics.reduce((s,c) => s + c.noShows, 0),
+  cancels: clinics.reduce((s,c) => s + c.cancels, 0),
+  revAtRisk: clinics.reduce((s,c) => s + c.revAtRisk, 0),
+  providers: clinics.reduce((s,c) => s + c.provCount, 0),
+};
+totals.noShowRate = ((totals.noShows / totals.appts) * 100).toFixed(1);
+totals.cancelRate = ((totals.cancels / totals.appts) * 100).toFixed(1);
+totals.avgUtil = Math.round(clinics.reduce((s,c) => s + c.utilization, 0) / clinics.length);
+totals.avgWait = Math.round(clinics.reduce((s,c) => s + c.avgWait, 0) / clinics.length);
+
+function updateTime() {
+  document.getElementById('current-time').textContent = new Date().toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+updateTime(); setInterval(updateTime, 60000);
+
+document.getElementById('summary-strip').innerHTML = `
+  <div class="sum-card"><div class="label">Total Appointments</div><div class="value">${totals.appts.toLocaleString()}</div><div class="sub">January 2026</div></div>
+  <div class="sum-card"><div class="label">No-Show Rate</div><div class="value rose">${totals.noShowRate}%</div><div class="sub">${totals.noShows.toLocaleString()} missed</div></div>
+  <div class="sum-card"><div class="label">Cancel Rate</div><div class="value amber">${totals.cancelRate}%</div><div class="sub">${totals.cancels.toLocaleString()} cancelled</div></div>
+  <div class="sum-card"><div class="label">Revenue at Risk</div><div class="value rose">$${(totals.revAtRisk/1000).toFixed(0)}K</div><div class="sub">Monthly impact</div></div>
+  <div class="sum-card"><div class="label">Avg Utilization</div><div class="value teal">${totals.avgUtil}%</div><div class="sub">Across 18 clinics</div></div>
+  <div class="sum-card"><div class="label">Avg Wait</div><div class="value amber">${totals.avgWait} min</div><div class="sub">Total visit avg</div></div>
+`;
+
+const alertClinics = clinics.filter(c => c.utilization < 65);
+if (alertClinics.length > 0) {
+  document.getElementById('alert-banner').innerHTML = `<div class="alert-banner">
+    <span class="alert-icon">!</span>
+    <span><strong>${alertClinics.length} clinic${alertClinics.length>1?'s':''} below 65% utilization</strong> — ${alertClinics.map(c=>c.name).join(', ')} — review scheduling capacity</span>
+  </div>`;
+}
+
+function getStatus(c) {
+  if (c.utilization < 65 || (c.noShows/c.appts) > 0.16) return 'alert';
+  if (c.utilization < 75 || (c.noShows/c.appts) > 0.14) return 'warn';
+  return 'ok';
+}
+
+document.getElementById('clinic-grid').innerHTML = clinics.map(c => {
+  const status = getStatus(c);
+  const nsRate = ((c.noShows / c.appts) * 100).toFixed(1);
+  const badgeClass = status === 'alert' ? 'badge-alert' : status === 'warn' ? 'badge-warn' : 'badge-ok';
+  const statusText = status === 'alert' ? 'Attention' : status === 'warn' ? 'Monitor' : 'On Track';
+  const utilColor = c.utilization >= 80 ? 'var(--teal)' : c.utilization >= 70 ? '#B45309' : 'var(--rose)';
+  return `<div class="clinic-card status-${status}" onclick="showClinicDetail('${c.id}')">
+    <div class="clinic-header">
+      <div><div class="clinic-name">${c.full}</div><div class="clinic-area">${c.area} &middot; ${c.provCount} providers</div></div>
+      <span class="status-badge ${badgeClass}">${statusText}</span>
+    </div>
+    <div class="clinic-metrics">
+      <div class="clinic-metric"><div class="m-val">${c.appts.toLocaleString()}</div><div class="m-label">Appts</div></div>
+      <div class="clinic-metric"><div class="m-val" style="color:${parseFloat(nsRate)>14?'var(--rose)':parseFloat(nsRate)>12?'#B45309':'var(--teal)'}">${nsRate}%</div><div class="m-label">No-Show</div></div>
+      <div class="clinic-metric"><div class="m-val">${c.avgWait}m</div><div class="m-label">Wait</div></div>
+    </div>
+    <div class="clinic-bar">
+      <div class="bar-label"><span>Utilization</span><span style="font-weight:700;color:${utilColor}">${c.utilization}%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${c.utilization}%;background:${utilColor}"></div></div>
+    </div>
+  </div>`;
+}).join('');
+
+// Alerts
+const alerts = [];
+clinics.forEach(c => {
+  const nsRate = (c.noShows/c.appts)*100;
+  if (nsRate > 16) alerts.push({type:'critical',text:`${c.full} — no-show rate at ${nsRate.toFixed(1)}%, well above 13% org average`,time:'Today'});
+  else if (nsRate > 14) alerts.push({type:'warning',text:`${c.full} — no-show rate trending above target at ${nsRate.toFixed(1)}%`,time:'Today'});
+  if (c.avgWait > 75) alerts.push({type:'critical',text:`${c.full} — wait time ${c.avgWait}min, patient satisfaction risk`,time:'Today'});
+  else if (c.avgWait > 65) alerts.push({type:'warning',text:`${c.full} — wait time ${c.avgWait}min, approaching threshold`,time:'Today'});
+  if (c.utilization < 65) alerts.push({type:'critical',text:`${c.full} — utilization at ${c.utilization}%, significant scheduling gap`,time:'Today'});
+});
+alerts.push({type:'info',text:'Schertz Clinic achieved highest utilization this month at 87% — best-practice model',time:'Yesterday'});
+alerts.push({type:'info',text:'Hill Country wait time improved 12% vs prior month — new intake workflow results',time:'This week'});
+alerts.sort((a,b) => ({critical:0,warning:1,info:2}[a.type]) - ({critical:0,warning:1,info:2}[b.type]));
+document.getElementById('alert-count').textContent = alerts.filter(a=>a.type==='critical').length;
+document.getElementById('alert-feed').innerHTML = alerts.slice(0,8).map(a => `
+  <div class="alert-item"><div class="alert-indicator ${a.type}"></div><div><div class="alert-text">${a.text}</div><div class="alert-time">${a.time}</div></div></div>
+`).join('');
+
+// Rankings
+const sorted = [...clinics].sort((a,b) => (a.noShows/a.appts)-(b.noShows/b.appts));
+document.getElementById('rankings').innerHTML = `<table class="rank-table">
+  <thead><tr><th>#</th><th>Clinic</th><th>No-Show %</th><th>Appts</th><th>Rev at Risk</th></tr></thead>
+  <tbody>${sorted.map((c,i) => {
+    const ns = ((c.noShows/c.appts)*100).toFixed(1);
+    const cl = i < 6 ? 'trend-up' : i > 11 ? 'trend-down' : '';
+    return `<tr><td class="rank-num">${i+1}</td><td>${c.name}</td><td class="${cl}">${ns}%</td><td>${c.appts.toLocaleString()}</td><td>$${(c.revAtRisk/1000).toFixed(0)}K</td></tr>`;
+  }).join('')}</tbody></table>`;
+
+function showClinicDetail(id) {
+  const c = clinics.find(cl=>cl.id===id); if(!c) return;
+  const nsR = ((c.noShows/c.appts)*100).toFixed(1), canR = ((c.cancels/c.appts)*100).toFixed(1), comp = c.appts-c.noShows-c.cancels;
+  document.getElementById('modal-content').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2>${c.full}</h2>
+    <div class="modal-sub">${c.address}, ${c.zip} &middot; ${c.area} &middot; ${c.size}</div>
+    <div class="modal-kpis">
+      <div class="modal-kpi"><div class="kv">${c.appts.toLocaleString()}</div><div class="kl">Appointments</div></div>
+      <div class="modal-kpi"><div class="kv" style="color:var(--rose)">${nsR}%</div><div class="kl">No-Show Rate</div></div>
+      <div class="modal-kpi"><div class="kv" style="color:#B45309">${canR}%</div><div class="kl">Cancel Rate</div></div>
+      <div class="modal-kpi"><div class="kv" style="color:var(--teal)">${c.utilization}%</div><div class="kl">Utilization</div></div>
+    </div>
+    <div class="modal-kpis">
+      <div class="modal-kpi"><div class="kv">${comp.toLocaleString()}</div><div class="kl">Completed</div></div>
+      <div class="modal-kpi"><div class="kv">${c.noShows}</div><div class="kl">No-Shows</div></div>
+      <div class="modal-kpi"><div class="kv">${c.avgWait}m</div><div class="kl">Avg Wait</div></div>
+      <div class="modal-kpi"><div class="kv" style="color:var(--rose)">$${(c.revAtRisk/1000).toFixed(0)}K</div><div class="kl">Rev at Risk</div></div>
+    </div>
+    <div class="modal-providers"><h3>Providers (${c.provCount})</h3>
+      ${c.providers.map(p => {
+        const pa = Math.round(c.appts/c.provCount)+Math.round((Math.random()-0.5)*40);
+        const pn = (10+Math.random()*8).toFixed(1);
+        return `<div class="prov-row"><span class="prov-name">${p}</span><span class="prov-stat">${pa} appts &middot; ${pn}% no-show</span></div>`;
+      }).join('')}
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function closeModal(e) { if(!e||e.target===document.getElementById('modal-overlay')) document.getElementById('modal-overlay').classList.remove('active'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>
